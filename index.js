@@ -40,10 +40,6 @@ let phonebook = [
   },
 ];
 
-app.get("/", (req, res) => {
-  res.redirect("/api/persons");
-});
-
 app.get("/api/persons", (request, response) => {
   response.json(phonebook);
 });
@@ -117,11 +113,6 @@ app.get("/info", (request, response) => {
   response.send(info);
 });
 
-const unknownEndpoint = (request, response) => {
-  response.status(404).send({ error: "Endpoint does not exist" });
-};
-
-app.use(unknownEndpoint);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
