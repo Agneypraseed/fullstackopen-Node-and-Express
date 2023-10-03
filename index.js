@@ -4,6 +4,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 
 app.use(express.json());
+app.use(express.static("dist"));
 
 app.use(cors());
 
@@ -39,6 +40,10 @@ let phonebook = [
     number: "39-23-6423122",
   },
 ];
+
+app.get("/", (req, res) => {
+  res.redirect("/api/persons");
+});
 
 app.get("/api/persons", (request, response) => {
   response.json(phonebook);
@@ -113,6 +118,11 @@ app.get("/info", (request, response) => {
   response.send(info);
 });
 
+const unknownEndpoint = (request, response) => {
+  response.status(404).send({ error: "Endpoint does not exist" });
+};
+
+app.use(unknownEndpoint);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
