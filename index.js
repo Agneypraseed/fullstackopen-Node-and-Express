@@ -97,19 +97,23 @@ app.post("/api/persons", (req, res) => {
       error: "number is missing",
     });
   }
-  if (phonebook.find((person) => person.name === body.name))
-    return res.status(400).json({
-      error: "name must be unique",
-    });
 
-  const newPerson = {
-    id: generateId(),
-    name: body.name,
-    number: body.number,
-  };
+  Person.find({ name: body.name }).then((result) => {    
+    if (result.length != 0) {
+      res.status(400).json({
+        error: "name must be unique",
+      });
+    } else {
+      const newPerson = new Person({
+        name: body.name,
+        number: body.number,
+      });
 
-  phonebook = phonebook.concat(newPerson);
-  res.json(newPerson);
+      newPerson.save().then((savedPerson) => {
+        res.json(savedPerson);
+      });
+    }
+  });
 });
 
 app.get("/info", (request, response) => {
