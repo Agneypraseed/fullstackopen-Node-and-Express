@@ -6,8 +6,8 @@ const cors = require("cors");
 
 const Person = require("./models/person");
 
-app.use(express.json());
 app.use(express.static("dist"));
+app.use(express.json());
 app.use(cors());
 
 morgan.token("postbody", function getBody(req) {
@@ -62,16 +62,19 @@ app.get("/api/persons/:id", (request, response) => {
 });
 
 app.delete("/api/persons/:id", (req, res) => {
-  const id = Number(req.params.id);
-  const person = phonebook.find((person) => person.id === id);
-  if (person) {
-    phonebook = phonebook.filter((person) => person.id !== id);
-    res.status(204).end();
-  } else {
-    res
-      .status(404)
-      .json({ error: "Person has already been deleted or Invalid id" });
-  }
+  Person.findByIdAndRemove(req.params.id)
+    .then((result) => {
+      if (result) {
+        res.status(204).end();
+      } else {
+        res.status(400).json({
+          error: "Person has already been deleted or id does not exist",
+        });
+      }
+    })
+    .catch((err) => {
+      res.status(400).json({ error: "Invalid id", message: err.message });
+    });
 });
 
 const generateId = () => {
@@ -98,7 +101,7 @@ app.post("/api/persons", (req, res) => {
     });
   }
 
-  Person.find({ name: body.name }).then((result) => {    
+  Person.find({ name: body.name }).then((result) => {
     if (result.length != 0) {
       res.status(400).json({
         error: "name must be unique",
