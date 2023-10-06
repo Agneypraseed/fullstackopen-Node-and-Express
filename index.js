@@ -51,14 +51,18 @@ app.get("/api/persons", (request, response) => {
   Person.find({}).then((res) => response.json(res));
 });
 
-app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = phonebook.find((person) => person.id === id);
-  if (person) {
-    response.json(person);
-  } else {
-    response.status(404).json({ error: "Invalid Id" });
-  }
+app.get("/api/persons/:id", (request, response, next) => {
+  Person.findById(request.params.id)
+    .then((res) => {
+      if (res) {
+        response.json(res);
+      } else {
+        response
+          .status(404)
+          .json({ error: "Id does not exist or may have been deleted" });
+      }
+    })
+    .catch((err) => next(err));
 });
 
 app.delete("/api/persons/:id", (req, res, next) => {
@@ -137,11 +141,13 @@ app.put("/api/persons/:id", (req, res, next) => {
 });
 
 app.get("/info", (request, response) => {
-  const info = `
-                <p>Phonebook has info for ${phonebook.length} people</p>
+  Person.find({}).then((res) => {
+    const info = `
+                <p>Phonebook has info for ${res.length} people</p>
                 <p>${new Date()}</p>
                 `;
-  response.send(info);
+    response.send(info);
+  });
 });
 
 const unknownEndpoint = (request, response) => {
