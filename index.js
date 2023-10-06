@@ -61,7 +61,7 @@ app.get("/api/persons/:id", (request, response) => {
   }
 });
 
-app.delete("/api/persons/:id", (req, res) => {
+app.delete("/api/persons/:id", (req, res, next) => {
   Person.findByIdAndRemove(req.params.id)
     .then((result) => {
       if (result) {
@@ -72,9 +72,7 @@ app.delete("/api/persons/:id", (req, res) => {
         });
       }
     })
-    .catch((err) => {
-      res.status(400).json({ error: "Invalid id", message: err.message });
-    });
+    .catch((err) => next(err));
 });
 
 const generateId = () => {
@@ -132,6 +130,19 @@ const unknownEndpoint = (request, response) => {
 };
 
 app.use(unknownEndpoint);
+
+const errorHandler = (err, req, res, next) => {
+  console.log("error : ", err.message);
+  console.log(err);
+
+  if (err.name === "CastError") {
+    return res.status(400).json({ error: "Invalid id", message: err.message });
+  }
+
+  next(err);
+};
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
