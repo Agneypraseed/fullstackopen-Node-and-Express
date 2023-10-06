@@ -117,6 +117,25 @@ app.post("/api/persons", (req, res) => {
   });
 });
 
+app.put("/api/persons/:id", (req, res, next) => {
+  const person = {
+    name: req.body.name,
+    number: req.body.number,
+  };
+
+  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+    .then((updatedPerson) => {
+      if (updatedPerson) {
+        res.json(updatedPerson);
+      } else {
+        res.status(400).json({
+          error: "Person has already been deleted or id does not exist",
+        });
+      }
+    })
+    .catch((err) => next(err));
+});
+
 app.get("/info", (request, response) => {
   const info = `
                 <p>Phonebook has info for ${phonebook.length} people</p>
