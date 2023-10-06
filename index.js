@@ -43,6 +43,17 @@ let phonebook = [
   },
 ];
 
+const generateId = () => {
+  const maxId = Math.max(...phonebook.map((person) => person.id), 1);
+  let id;
+
+  do {
+    id = Math.floor(Math.random() * 1001);
+  } while (phonebook.find((person) => person.id === id));
+
+  return id > maxId ? id : maxId + 1;
+};
+
 app.get("/", (req, res) => {
   res.redirect("/api/persons");
 });
@@ -79,18 +90,7 @@ app.delete("/api/persons/:id", (req, res, next) => {
     .catch((err) => next(err));
 });
 
-const generateId = () => {
-  const maxId = Math.max(...phonebook.map((person) => person.id), 1);
-  let id;
-
-  do {
-    id = Math.floor(Math.random() * 1001);
-  } while (phonebook.find((person) => person.id === id));
-
-  return id > maxId ? id : maxId + 1;
-};
-
-app.post("/api/persons", (req, res) => {
+app.post("/api/persons", (req, res, next) => {
   const body = req.body;
   if (!body.name) {
     return res.status(400).json({
@@ -103,22 +103,27 @@ app.post("/api/persons", (req, res) => {
     });
   }
 
-  Person.find({ name: body.name }).then((result) => {
-    if (result.length != 0) {
-      res.status(400).json({
-        error: "name must be unique",
-      });
-    } else {
-      const newPerson = new Person({
-        name: body.name,
-        number: body.number,
-      });
+  Person.find({ name: body.name })
+    .then((result) => {
+      if (result.length != 0) {
+        res.status(400).json({
+          error: "name must be unique",
+        });
+      } else {
+        const newPerson = new Person({
+          name: body.name,
+          number: body.number,
+        });
 
-      newPerson.save().then((savedPerson) => {
-        res.json(savedPerson);
-      });
-    }
-  });
+        newPerson
+          .save()
+          .then((savedPerson) => {
+            res.json(savedPerson);
+          })
+          .catch((err) => next(err));
+      }
+    })
+    .catch((err) => next(err));
 });
 
 app.put("/api/persons/:id", (req, res, next) => {
@@ -127,7 +132,11 @@ app.put("/api/persons/:id", (req, res, next) => {
     number: req.body.number,
   };
 
-  Person.findByIdAndUpdate(req.params.id, person, { new: true })
+  Person.findByIdAndUpdate(req.params.id, person, {
+    new: true,
+    runValidators: true,
+    context: "query",
+  })
     .then((updatedPerson) => {
       if (updatedPerson) {
         res.json(updatedPerson);
@@ -162,6 +171,8 @@ const errorHandler = (err, req, res, next) => {
 
   if (err.name === "CastError") {
     return res.status(400).json({ error: "Invalid id", message: err.message });
+  } else if (err.name === "ValidationError") {
+    return res.status(400).json({ error: err.message });
   }
 
   next(err);
