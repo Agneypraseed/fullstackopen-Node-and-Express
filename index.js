@@ -20,39 +20,39 @@ app.use(
   )
 );
 
-let phonebook = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
+// let phonebook = [
+//   {
+//     id: 1,
+//     name: "Arto Hellas",
+//     number: "040-123456",
+//   },
+//   {
+//     id: 2,
+//     name: "Ada Lovelace",
+//     number: "39-44-5323523",
+//   },
+//   {
+//     id: 3,
+//     name: "Dan Abramov",
+//     number: "12-43-234345",
+//   },
+//   {
+//     id: 4,
+//     name: "Mary Poppendieck",
+//     number: "39-23-6423122",
+//   },
+// ];
 
-const generateId = () => {
-  const maxId = Math.max(...phonebook.map((person) => person.id), 1);
-  let id;
+// const generateId = () => {
+//   const maxId = Math.max(...phonebook.map((person) => person.id), 1);
+//   let id;
 
-  do {
-    id = Math.floor(Math.random() * 1001);
-  } while (phonebook.find((person) => person.id === id));
+//   do {
+//     id = Math.floor(Math.random() * 1001);
+//   } while (phonebook.find((person) => person.id === id));
 
-  return id > maxId ? id : maxId + 1;
-};
+//   return id > maxId ? id : maxId + 1;
+// };
 
 app.get("/", (req, res) => {
   res.redirect("/api/persons");
@@ -105,7 +105,7 @@ app.post("/api/persons", (req, res, next) => {
 
   Person.find({ name: body.name })
     .then((result) => {
-      if (result.length != 0) {
+      if (result.length !== 0) {
         res.status(400).json({
           error: "name must be unique",
         });
